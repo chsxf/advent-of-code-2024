@@ -1,6 +1,6 @@
 <?php
 
-$lines = file('input.txt', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+$lines = require_once('../common/input.php');
 
 $totalSum = 0;
 foreach ($lines as $line) {

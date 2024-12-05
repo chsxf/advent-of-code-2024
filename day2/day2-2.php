@@ -1,6 +1,7 @@
 <?php
 
-$lines = file('input.txt', FILE_SKIP_EMPTY_LINES | FILE_IGNORE_NEW_LINES);
+$lines = require_once('../common/input.php');
+
 $reports = array_map(fn($line) => array_map(intval(...), explode(' ', $line)), $lines);
 
 $safeReportCount = 0;

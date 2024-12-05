@@ -1,6 +1,7 @@
 <?php
 
-$lines = file('input.txt', FILE_SKIP_EMPTY_LINES | FILE_IGNORE_NEW_LINES);
+$lines = require_once('../common/input.php');
+
 $reports = array_map(fn($line) => array_map(intval(...), explode(' ', $line)), $lines);
 
 @unlink('output.txt');
@@ -27,7 +28,5 @@ foreach ($reports as $report) {
     if ($isValid) {
         $safeReportCount++;
     }
-
-    file_put_contents('output.txt', sprintf("%s => %d\n", implode(' ', $report), $isValid), FILE_APPEND);
 }
 var_dump($safeReportCount);

@@ -1,7 +1,8 @@
 <?php
 
-$inputLines = file('input.txt', FILE_SKIP_EMPTY_LINES | FILE_IGNORE_NEW_LINES);
-$inputLines = array_map(function($line) {
+$inputLines = require_once('../common/input.php');
+
+$inputLines = array_map(function ($line) {
     $line = preg_replace('/\s+/', ' ', $line);
     return array_map(intval(...), explode(' ', $line));
 }, $inputLines);
