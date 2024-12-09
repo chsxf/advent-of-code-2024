@@ -38,6 +38,19 @@ class DiskFile
         }
         return false;
     }
+
+    public function moveTo(int $firstIndex)
+    {
+        $currentFirst = array_reduce($this->sectors, min(...), PHP_INT_MAX);
+        for ($i = 0; $i < count($this->sectors); $i++) {
+            $this->sectors[$i] += $firstIndex - $currentFirst;
+        }
+    }
+
+    public function getLength()
+    {
+        return count($this->sectors);
+    }
 }
 
 class DiskPartioner
@@ -84,6 +97,46 @@ class DiskPartioner
         }
     }
 
+    public function defragmentWholeFiles()
+    {
+        for ($i = count($this->files) - 1; $i >= 0; $i--) {
+            $file = $this->files[$i];
+            $firstEmptySpaceIndex = $this->findFirstEmptySpacePosition($file->getLength());
+            if ($firstEmptySpaceIndex !== null) {
+                $file->moveTo($firstEmptySpaceIndex);
+            }
+        }
+    }
+
+    private function getFileMaxIndex(): int
+    {
+        return array_reduce($this->files, fn($carry, $file) => max($carry, $file->getMaxSector()), 0);
+    }
+
+    private function findFirstEmptySpacePosition(int $length): ?int
+    {
+        $maxIndex = $this->getFileMaxIndex();
+
+        $firstSpaceIndex = null;
+        $consecutiveSpaceCount = 0;
+        for ($currentIndex = 0; $currentIndex < $maxIndex; $currentIndex++) {
+            if (!$this->isEmpty($currentIndex)) {
+                $firstSpaceIndex = null;
+                $consecutiveSpaceCount = 0;
+            } else {
+                if ($firstSpaceIndex === null) {
+                    $firstSpaceIndex = $currentIndex;
+                }
+                $consecutiveSpaceCount++;
+
+                if ($consecutiveSpaceCount == $length) {
+                    return $firstSpaceIndex;
+                }
+            }
+        }
+        return null;
+    }
+
     private function isEmpty(int $index): bool
     {
         foreach ($this->files as $file) {
@@ -118,10 +171,12 @@ class DiskPartioner
     public function computeChecksum(): int
     {
         $checkSum = 0;
-        $currentIndex = 0;
-        while (($id = $this->getFileIdAt($currentIndex)) !== null) {
-            $checkSum += $id * $currentIndex;
-            $currentIndex++;
+        $maxIndex = $this->getFileMaxIndex();
+        for ($i = 0; $i <= $maxIndex; $i++) {
+            $id = $this->getFileIdAt($i);
+            if ($id !== null) {
+                $checkSum += $id * $i;
+            }
         }
         return $checkSum;
     }
